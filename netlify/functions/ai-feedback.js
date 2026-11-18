@@ -6,10 +6,10 @@
  *   즉시 모든 AI 피드백 기능을 차단하고 '더 이상 AI 피드백을 받을 수 없습니다.'를 반환합니다.
  */
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://cyjnrwtnbcxcobfzuhwc.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://yjjsjththyqmotencrvq.supabase.co';
 const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5am5yd3RuYmN4Y29iZnp1aHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ5NDQwMDcsImV4cCI6MjExMDUyMDAwN30._CZ5ID1XvcUnHECs7YGkYkLSLTeBAOMrrXptkKQnxAA';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqanNqdGh0aHlxbW90ZW5jcnZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ5NzQ3MDAsImV4cCI6MjExMDU1MDcwMH0.htPOHRj4nKyIy6sCdh8sXrPJR_jh5A3M4JvsdCQ1fZ8';
 
 const QUOTA_GUARD_ID = '__AI_QUOTA_GUARD__';
 // 무료 티어 한도를 절대 넘지 않도록 안전한 일일 하드 리밋 설정 (초과 시 즉시 전체 종료)

@@ -23,7 +23,10 @@ create table if not exists public.robot_expo_students (
   updated_at timestamptz not null default now()
 );
 
--- 2. 학급 수업용 공개 읽기/쓰기 권한(RLS) 설정
+-- 2. 학급 수업용 공개 읽기/쓰기 권한(RLS 및 역할 권한) 설정
+grant usage on schema public to anon, authenticated;
+grant all on table public.robot_expo_students to anon, authenticated;
+
 alter table public.robot_expo_students enable row level security;
 
 drop policy if exists "Allow public classroom access on robot_expo_students" on public.robot_expo_students;
