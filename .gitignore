@@ -1,0 +1,6 @@
+# 환경변수 및 비밀 키 파일 (GitHub 공개 저장소에 절대 업로드되지 않도록 차단)
+.env
+.env.*
+*.env
+.netlify/
+node_modules/

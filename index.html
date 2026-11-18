@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>지속가능한 미래를 위한 2050 로봇 박람회</title>
+  <!-- 로봇 이모지 파비콘 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS SDK CDN (실시간 DB & MP4 영상 Storage 연동) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            expo: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-expo-grid min-h-screen flex flex-col text-slate-800">
+
+  <!-- ====================================================================
+       상단 헤더 & 3개 탭 네비게이션 + 우측 상단 홈화면 버튼
+       ==================================================================== -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3">
+        
+        <!-- 로고 및 타이틀 -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-md shadow-blue-500/20">
+              🤖
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 rounded-full">2050 ROBO EXPO</span>
+                <!-- 실시간 동기화 상태 표시 (문구 없이 색깔 원으로만 표시) -->
+                <div id="sync-status-indicator" class="inline-flex items-center justify-center p-1 rounded-full bg-slate-100 select-none">
+                  <span id="sync-status-dot" class="w-3 h-3 rounded-full bg-emerald-500 transition-all"></span>
+                </div>
+              </div>
+              <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight mt-0.5">
+                지속가능한 미래를 위한 2050 로봇 박람회
+              </h1>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3개 메인 탭 네비게이션 + 오른쪽 상단 홈화면 버튼 -->
+        <div class="flex items-center gap-2 self-start md:self-auto w-full md:w-auto">
+          <nav class="flex flex-1 md:flex-initial items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 overflow-x-auto">
+            <button
+              id="tab-btn-studio"
+              onclick="switchMainTab('studio')"
+              class="tab-nav-btn flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap bg-white text-blue-600 shadow-sm"
+            >
+              <span>🛠️</span>
+              <span>로봇 설계실</span>
+              <span id="tab-studio-badge" class="hidden px-1.5 py-0.5 text-[11px] rounded-full bg-orange-100 text-orange-700 font-extrabold">!</span>
+            </button>
+
+            <button
+              id="tab-btn-expo"
+              onclick="switchMainTab('expo')"
+              class="tab-nav-btn flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900"
+            >
+              <span>🏛️</span>
+              <span>미래 로봇 박람회 전시관</span>
+              <span id="tab-expo-count" class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-bold">0</span>
+            </button>
+
+            <button
+              id="tab-btn-teacher"
+              onclick="switchMainTab('teacher')"
+              class="tab-nav-btn flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900"
+            >
+              <span>🔒</span>
+              <span>교사 관리자</span>
+            </button>
+          </nav>
+
+          <!-- 오른쪽 상단 홈화면 버튼 (로그인 화면으로 돌아가기) -->
+          <button
+            id="btn-go-home"
+            type="button"
+            onclick="goHomeToLogin()"
+            class="px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition flex items-center gap-1.5 whitespace-nowrap shrink-0"
+            title="로그인 화면(홈)으로 돌아가기"
+          >
+            <span>🏠</span>
+            <span>홈화면</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ====================================================================
+       메인 컨텐츠 영역
+       ==================================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- ==================================================================
+         [탭 1] 🛠️ 로봇 설계실 (학생 개별 작업 공간)
+         ================================================================== -->
+    <section id="view-studio" class="space-y-6">
+
+      <!-- 1-A. 학생 이름 로그인 화면 (학번 삭제됨) -->
+      <div id="student-login-panel" class="max-w-xl mx-auto bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/90 overflow-hidden mt-4">
+        <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-6 py-8 text-white text-center relative overflow-hidden">
+          <div class="text-4xl mb-2">🛠️</div>
+          <h2 class="text-2xl font-extrabold tracking-tight">2050 미래 로봇 설계실</h2>
+        </div>
+
+        <div class="p-6 sm:p-8 space-y-6">
+          <form id="student-login-form" class="space-y-4">
+            <div>
+              <label for="login-student-name" class="block text-sm font-bold text-slate-700 mb-1.5">이름 <span class="text-rose-500">*</span></label>
+              <input
+                id="login-student-name"
+                type="text"
+                placeholder="예: 김미래"
+                required
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-base font-medium transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-base shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2"
+            >
+              <span>🚀</span>
+              <span>내 로봇 설계실 입장하기</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- 1-B. 학생 개별 로봇 설계실 워크스페이스 (로그인 후 표시) -->
+      <div id="student-workspace-panel" class="hidden space-y-6">
+
+        <!-- 상단 학생 정보 및 현재 상태 바 -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-lg font-extrabold text-blue-600">
+              🧑‍🔬
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="workspace-student-label" class="text-base sm:text-lg font-extrabold text-slate-900">김미래</span>
+                <span class="text-xs text-slate-400 font-medium">연구원님의 개인 작업 공간 (비공개 · 자동 이어쓰기 지원)</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 mt-1">
+                <span class="text-xs text-slate-500">현재 상태:</span>
+                <span id="workspace-status-badge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-slate-100 text-slate-700">
+                  ✍️ 작성중
+                </span>
+                <span id="workspace-version-badge" class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  미제출
+                </span>
+                <span id="workspace-autosave-indicator" class="text-xs text-slate-400 ml-1">자동 저장됨</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-end sm:self-center">
+            <button
+              type="button"
+              onclick="openCurrentStudentHistoryModal()"
+              id="btn-student-my-history"
+              class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5"
+            >
+              <span>🕒</span>
+              <span>내 제출 이력 (<span id="student-history-count">0</span>)</span>
+            </button>
+            <button
+              type="button"
+              onclick="goHomeToLogin()"
+              class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center gap-1"
+            >
+              <span>🏠</span>
+              <span>로그인 화면으로</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 교사 피드백 알림 배너 (수정요청 도착! / 전시승인 등) -->
+        <div id="student-feedback-banner" class="hidden rounded-2xl p-5 border-2 transition-all">
+          <!-- JS에서 상태에 따라 렌더링 -->
+        </div>
+
+        <!-- 작성 구체화 진행도 바 (7단계) -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📊</span>
+              <h3 class="text-sm font-extrabold text-slate-800">7단계 로봇 기획 구체화 달성도</h3>
+            </div>
+            <span id="coaching-progress-text" class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+              7단계 중 0단계 구체화 완료
+            </span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div id="coaching-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- ==============================================================
+             A. 7단계 구조화 입력 폼 & 예시 태그 버튼 & 실시간 코칭 질문
+             ============================================================== -->
+        <div class="space-y-5">
+
+          <!-- [1단계] 로봇 이름 & 외형 특징 -->
+          <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center">1</span>
+                <div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900">로봇 이름 &amp; 외형 특징</h3>
+                  <p class="text-xs text-slate-500">로봇의 멋진 이름과 생김새, 다리/바퀴 구조, 팔 모양, 재질 등을 적어보세요.</p>
+                </div>
+              </div>
+              <span id="step1-status-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 whitespace-nowrap">작성 필요</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- 입력창 1: 로봇 이름 -->
+              <div class="md:col-span-1">
+                <label for="input-robot-name" class="block text-xs font-bold text-slate-700 mb-1.5">
+                  1-1. 로봇 이름 <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  id="input-robot-name"
+                  type="text"
+                  placeholder="예: 아쿠아 가디언 X-50"
+                  oninput="handleStudioInputChange()"
+                  onchange="handleStudioStepMove()"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm font-semibold transition"
+                />
+              </div>
+
+              <!-- 입력창 2: 외형 특징 -->
+              <div class="md:col-span-2">
+                <div class="flex items-center justify-between mb-1.5">
+                  <label for="input-appearance" class="block text-xs font-bold text-slate-700">
+                    1-2. 로봇의 외형 특징 (생김새, 다리/바퀴 구조, 팔 모양, 재질 등) <span class="text-rose-500">*</span>
+                  </label>
+                  <span id="char-count-appearance" class="text-[11px] font-semibold text-slate-400">0자 (권장 15자 이상)</span>
+                </div>
+                <textarea
+                  id="input-appearance"
+                  rows="2"
+                  placeholder="예: 친근한 둥근 유선형 몸체에 4족보행 다리와 수중 프로펠러가 결합되어 있고, 전면에는 다관절 집게팔과 투명 홀로그램 패널이 장착된 티타늄 합금 구조"
+                  oninput="handleStudioInputChange()"
+                  onchange="handleStudioStepMove()"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm transition resize-y"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- 예시 태그 버튼 -->
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/70">
+              <div class="text-xs font-bold text-slate-500 mb-2 flex items-center gap-1.5">
+                <span>🏷️</span>
+                <span>[+ 예시 태그 버튼] 클릭하면 외형 특징 입력창에 바로 추가됩니다:</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5" id="tags-appearance">
+                <button type="button" onclick="appendTagToInput('input-appearance', '무한궤도')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 무한궤도</button>
+                <button type="button" onclick="appendTagToInput('input-appearance', '4족 보행')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 4족 보행</button>
+                <button type="button" onclick="appendTagToInput('input-appearance', '집게팔')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 집게팔</button>
+                <button type="button" onclick="appendTagToInput('input-appearance', '인간형')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 인간형</button>
+                <button type="button" onclick="appendTagToInput('input-appearance', '접이식')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 접이식</button>
+                <button type="button" onclick="appendTagToInput('input-appearance', '잠수형')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 잠수형</button>
+                <button type="button" onclick="appendTagToInput('input-appearance', '비행형')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 비행형</button>
+                <button type="button" onclick="appendTagToInput('input-appearance', '유선형')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 유선형</button>
+              </div>
+            </div>
+
+            <!-- 실시간 구체화 코칭 질문 (15자 미만 시 주황색 박스) -->
+            <div id="coaching-step-1" class="coaching-box bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-3.5 text-orange-900 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+              <span class="text-base leading-none mt-0.5">💡</span>
+              <div>
+                <strong class="font-extrabold text-orange-800">[구체화 코칭 질문]</strong>
+                로봇이 이동할 때 바퀴를 쓰나요, 다리를 쓰나요? 로봇의 겉모습, 부품 구조, 색깔이나 재질을 한 가지만 더 구체적으로 적어볼까요? <span class="text-orange-600 font-bold">(외형 특징 15자 이상 권장)</span>
+              </div>
+            </div>
+
+            <!-- 1단계 AI 맞춤 피드백 표시 영역 (입력칸 바로 아래 표시) -->
+            <div id="ai-feedback-step-1" class="hidden bg-violet-50 border-2 border-violet-300 rounded-2xl p-4 text-violet-950 text-xs sm:text-sm space-y-1 shadow-sm"></div>
+          </div>
+
+          <!-- [2단계] 제작 목적 (해결할 미래 사회 문제) -->
+          <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center">2</span>
+                <div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900">제작 목적 (해결할 미래 사회 문제)</h3>
+                  <p class="text-xs text-slate-500">2050년 미래 사회에서 이 로봇이 어떤 장소에서 누구의 어떤 문제를 해결하는지 적어보세요.</p>
+                </div>
+              </div>
+              <span id="step2-status-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 whitespace-nowrap">작성 필요</span>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="input-purpose" class="block text-xs font-bold text-slate-700">
+                  2. 해결할 미래 사회 문제와 활동 배경 장소 <span class="text-rose-500">*</span>
+                </label>
+                <span id="char-count-purpose" class="text-[11px] font-semibold text-slate-400">0자 (권장 15자 이상)</span>
+              </div>
+              <textarea
+                id="input-purpose"
+                rows="2"
+                placeholder="예: 오염된 바다와 해안가를 누비며 해양 생물을 위협하는 해양 미세플라스틱과 폐그물을 수거하여 바다 생태계를 복원함"
+                oninput="handleStudioInputChange()"
+                onchange="handleStudioStepMove()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm transition resize-y"
+              ></textarea>
+            </div>
+
+            <!-- 실시간 구체화 코칭 질문 (15자 미만 시 주황색 박스) -->
+            <div id="coaching-step-2" class="coaching-box bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-3.5 text-orange-900 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+              <span class="text-base leading-none mt-0.5">💡</span>
+              <div>
+                <strong class="font-extrabold text-orange-800">[구체화 코칭 질문]</strong>
+                누가, 어떤 장소에서 겪는 어려움을 해결해 주나요? 로봇이 일하는 구체적인 장소(바다, 숲, 집 안 등)와 상황을 적어보세요! <span class="text-orange-600 font-bold">(15자 이상 권장)</span>
+              </div>
+            </div>
+
+            <!-- 2단계 AI 맞춤 피드백 표시 영역 (입력칸 바로 아래 표시) -->
+            <div id="ai-feedback-step-2" class="hidden bg-violet-50 border-2 border-violet-300 rounded-2xl p-4 text-violet-950 text-xs sm:text-sm space-y-1 shadow-sm"></div>
+          </div>
+
+          <!-- [3단계] 주요 기능 (작동 모습과 기계적 구조) -->
+          <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center">3</span>
+                <div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900">주요 기능 (작동 모습과 기계적 구조)</h3>
+                  <p class="text-xs text-slate-500">로봇의 어떤 부품이 어떻게 움직이며 문제를 해결하는지 작동 모습을 구체적으로 적어보세요.</p>
+                </div>
+              </div>
+              <span id="step3-status-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 whitespace-nowrap">작성 필요</span>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="input-main-function" class="block text-xs font-bold text-slate-700">
+                  3. 로봇의 핵심 작동 모습과 기계적 구조 <span class="text-rose-500">*</span>
+                </label>
+                <span id="char-count-main-function" class="text-[11px] font-semibold text-slate-400">0자 (권장 50자 이상)</span>
+              </div>
+              <textarea
+                id="input-main-function"
+                rows="3"
+                placeholder="예: 가슴의 전면 흡입구로 바닷물을 빨아들여 내부 나노 필터로 미세플라스틱만 걸러내어 친환경 블록으로 압축하고 깨끗한 바닷물을 배출함"
+                oninput="handleStudioInputChange()"
+                onchange="handleStudioStepMove()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm transition resize-y"
+              ></textarea>
+            </div>
+
+            <!-- 실시간 구체화 코칭 질문 (50자 미만 시 주황색 박스) -->
+            <div id="coaching-step-3" class="coaching-box bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-3.5 text-orange-900 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+              <span class="text-base leading-none mt-0.5">💡</span>
+              <div>
+                <strong class="font-extrabold text-orange-800">[구체화 코칭 질문]</strong>
+                로봇의 어떤 부품(팔, 흡입구, 날개 등)이 어떻게 움직이면서 문제를 해결하는지 눈에 그려지듯 적어보세요! <span class="text-orange-600 font-bold">(50자 이상 권장)</span>
+              </div>
+            </div>
+
+            <!-- 3단계 AI 맞춤 피드백 표시 영역 (입력칸 바로 아래 표시) -->
+            <div id="ai-feedback-step-3" class="hidden bg-violet-50 border-2 border-violet-300 rounded-2xl p-4 text-violet-950 text-xs sm:text-sm space-y-1 shadow-sm"></div>
+          </div>
+
+          <!-- [4단계] 탑재된 감지 장치 (센서 3단계 분리 입력) -->
+          <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center">4</span>
+                <div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900">탑재된 감지 장치 (센서 3단계 분리 입력)</h3>
+                  <p class="text-xs text-slate-500">[센서 이름 ➔ 세부 감지 대상 ➔ 감지 후 로봇의 행동]을 3단계로 연결해 적어보세요.</p>
+                </div>
+              </div>
+              <span id="step4-status-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 whitespace-nowrap">작성 필요</span>
+            </div>
+
+            <!-- 4-1. 탑재 센서 이름 -->
+            <div class="space-y-2">
+              <label for="input-sensor-name" class="block text-xs font-bold text-slate-700">
+                4-1. 탑재 센서 이름 <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="input-sensor-name"
+                type="text"
+                placeholder="예: 수질·미세먼지센서, 초음파센서"
+                oninput="handleStudioInputChange()"
+                onchange="handleStudioStepMove()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm font-semibold transition"
+              />
+              <!-- 4-1 센서 예시 버튼 -->
+              <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/70">
+                <div class="text-xs font-bold text-slate-500 mb-2 flex items-center gap-1.5">
+                  <span>📡</span>
+                  <span>[+ 센서 예시 태그 버튼] 클릭하면 4-1 센서 이름에 추가됩니다:</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '카메라 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 카메라 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '적외선 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 적외선 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '초음파 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 초음파 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '거리 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 거리 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '온도 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 온도 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '압력 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 압력 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '촉각 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 촉각 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '소리 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 소리 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '빛 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 빛 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '미세먼지 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 미세먼지 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '위치 센서(GPS)')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 위치 센서(GPS)</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '움직임 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 움직임 센서</button>
+                  <button type="button" onclick="appendTagToInput('input-sensor-name', '심박 센서')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 심박 센서</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4-2 & 4-3 나란히 배치 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label for="input-sensor-target" class="block text-xs font-bold text-slate-700">
+                    4-2. 세부 감지 대상 (무엇을 정밀하게 감지하나요?) <span class="text-rose-500">*</span>
+                  </label>
+                  <span id="char-count-sensor-target" class="text-[11px] font-semibold text-slate-400">0자 (권장 10자 이상)</span>
+                </div>
+                <textarea
+                  id="input-sensor-target"
+                  rows="2"
+                  placeholder="예: 연기 속 사람의 체온, 전방 10m 이내 장애물 위치, 바닷속 1mm 이하의 미세플라스틱 농도와 물고기 움직임"
+                  oninput="handleStudioInputChange()"
+                  onchange="handleStudioStepMove()"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm transition resize-y"
+                ></textarea>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label for="input-sensor-action" class="block text-xs font-bold text-slate-700">
+                    4-3. 감지 정보 활용 방법 (감지 후 어떻게 행동하나요?) <span class="text-rose-500">*</span>
+                  </label>
+                  <span id="char-count-sensor-action" class="text-[11px] font-semibold text-slate-400">0자 (권장 10자 이상)</span>
+                </div>
+                <textarea
+                  id="input-sensor-action"
+                  rows="2"
+                  placeholder="예: 물고기는 안전하게 피해 경로를 바꾸고, 미세플라스틱 밀집 구역으로 이동해 흡입구와 다관절 수거 팔을 작동시킴"
+                  oninput="handleStudioInputChange()"
+                  onchange="handleStudioStepMove()"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm transition resize-y"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- 실시간 구체화 코칭 질문 (4-2 또는 4-3이 10자 미만 시 주황색 박스) -->
+            <div id="coaching-step-4" class="coaching-box bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-3.5 text-orange-900 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+              <span class="text-base leading-none mt-0.5">💡</span>
+              <div>
+                <strong class="font-extrabold text-orange-800">[구체화 코칭 질문]</strong>
+                센서가 정보를 알아챈 뒤 로봇의 어떤 장치가 이어서 작동하나요? <strong>[감지 ➔ 판단 ➔ 로봇의 행동]</strong>이 연결되게 적어보세요! <span class="text-orange-600 font-bold">(4-2, 4-3 각각 10자 이상 권장)</span>
+              </div>
+            </div>
+
+            <!-- 4단계 AI 맞춤 피드백 표시 영역 (입력칸 바로 아래 표시) -->
+            <div id="ai-feedback-step-4" class="hidden bg-violet-50 border-2 border-violet-300 rounded-2xl p-4 text-violet-950 text-xs sm:text-sm space-y-1 shadow-sm"></div>
+          </div>
+
+          <!-- [5단계] 적용된 과학 기술 (융합 기술) -->
+          <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center">5</span>
+                <div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900">적용된 과학 기술 (융합 기술)</h3>
+                  <p class="text-xs text-slate-500">로봇을 더 똑똑하거나 친환경적으로 만들어 주는 첨단 융합 과학기술을 적어보세요.</p>
+                </div>
+              </div>
+              <span id="step5-status-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 whitespace-nowrap">작성 필요</span>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="input-science-tech" class="block text-xs font-bold text-slate-700">
+                  5. 적용된 첨단 과학 기술 및 적용 방식 <span class="text-rose-500">*</span>
+                </label>
+                <span id="char-count-science-tech" class="text-[11px] font-semibold text-slate-400">0자 (권장 50자 이상)</span>
+              </div>
+              <textarea
+                id="input-science-tech"
+                rows="2"
+                placeholder="예: 인공지능(AI) 사물인식 기술로 생물과 쓰레기를 구별하고, 등판의 태양광 자가발전 배터리로 충전 없이 바다를 자율주행함"
+                oninput="handleStudioInputChange()"
+                onchange="handleStudioStepMove()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm transition resize-y"
+              ></textarea>
+            </div>
+
+            <!-- 예시 태그 버튼 -->
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/70">
+              <div class="text-xs font-bold text-slate-500 mb-2 flex items-center gap-1.5">
+                <span>🏷️</span>
+                <span>[+ 예시 태그 버튼] 클릭하면 과학 기술 입력창에 바로 추가됩니다:</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="appendTagToInput('input-science-tech', '인공지능(AI)')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 인공지능(AI)</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '영상 인식')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 영상 인식</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '음성 인식')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 음성 인식</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '자율주행')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 자율주행</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '사물인터넷(IoT)')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 사물인터넷(IoT)</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '실시간 통신')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 실시간 통신</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '드론 기술')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 드론 기술</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '생체 모방 기술')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 생체 모방 기술</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '3D 프린팅')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 3D 프린팅</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '태양광 발전')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 태양광 발전</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '무선 충전')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 무선 충전</button>
+                <button type="button" onclick="appendTagToInput('input-science-tech', '친환경 배터리')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">+ 친환경 배터리</button>
+              </div>
+            </div>
+
+            <!-- 실시간 구체화 코칭 질문 (50자 미만 시 주황색 박스) -->
+            <div id="coaching-step-5" class="coaching-box bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-3.5 text-orange-900 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+              <span class="text-base leading-none mt-0.5">💡</span>
+              <div>
+                <strong class="font-extrabold text-orange-800">[구체화 코칭 질문]</strong>
+                이 과학 기술이 로봇의 어느 부분에 적용되어 로봇을 더 똑똑하거나 친환경적으로 만들어 주나요? <span class="text-orange-600 font-bold">(50자 이상 권장)</span>
+              </div>
+            </div>
+
+            <!-- 5단계 AI 맞춤 피드백 표시 영역 (입력칸 바로 아래 표시) -->
+            <div id="ai-feedback-step-5" class="hidden bg-violet-50 border-2 border-violet-300 rounded-2xl p-4 text-violet-950 text-xs sm:text-sm space-y-1 shadow-sm"></div>
+          </div>
+
+          <!-- [6단계] 추구하는 가치 (해시태그 형태로 단어 2가지 이상 입력) -->
+          <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center">6</span>
+                <div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900">추구하는 가치 (해시태그 단어 2가지 이상)</h3>
+                  <p class="text-xs text-slate-500">이 로봇이 만들어갈 지속가능한 미래 사회의 핵심 가치를 해시태그(#) 형태로 2가지 이상 적어보세요.</p>
+                </div>
+              </div>
+              <span id="step6-status-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 whitespace-nowrap">작성 필요</span>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="input-core-values" class="block text-xs font-bold text-slate-700">
+                  6. 로봇이 추구하는 핵심 가치 (해시태그 단어 2개 이상) <span class="text-rose-500">*</span>
+                </label>
+                <span id="count-core-values" class="text-[11px] font-semibold text-slate-400">0개 단어 (권장 2개 이상)</span>
+              </div>
+              <input
+                id="input-core-values"
+                type="text"
+                placeholder="예: #생태계보존 #지속가능한미래 #생명존중"
+                oninput="handleStudioInputChange()"
+                onchange="handleStudioStepMove()"
+                onblur="normalizeCoreValuesHashtags()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm font-semibold text-indigo-700 transition"
+              />
+            </div>
+
+            <!-- 추구하는 가치 해시태그 예시 버튼 -->
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/70">
+              <div class="text-xs font-bold text-slate-500 mb-2 flex items-center gap-1.5">
+                <span>💎</span>
+                <span>[+ 가치 해시태그 버튼] 클릭하면 해시태그(#) 형태로 바로 추가됩니다 (직접 입력도 가능):</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="appendHashtagValue('#생태계보존')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">+ #생태계보존</button>
+                <button type="button" onclick="appendHashtagValue('#생명존중')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">+ #생명존중</button>
+                <button type="button" onclick="appendHashtagValue('#지속가능성')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">+ #지속가능성</button>
+                <button type="button" onclick="appendHashtagValue('#탄소중립')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">+ #탄소중립</button>
+                <button type="button" onclick="appendHashtagValue('#안전한사회')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">+ #안전한사회</button>
+                <button type="button" onclick="appendHashtagValue('#따뜻한돌봄')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">+ #따뜻한돌봄</button>
+                <button type="button" onclick="appendHashtagValue('#인간과자연의공존')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">+ #인간과자연의공존</button>
+                <button type="button" onclick="appendHashtagValue('#자원순환')" class="tag-chip px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">+ #자원순환</button>
+              </div>
+            </div>
+
+            <!-- 실시간 구체화 코칭 질문 (단어 2개 미만 시 주황색 박스) -->
+            <div id="coaching-step-6" class="coaching-box bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-3.5 text-orange-900 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+              <span class="text-base leading-none mt-0.5">💡</span>
+              <div>
+                <strong class="font-extrabold text-orange-800">[구체화 코칭 질문]</strong>
+                이 로봇을 통해 꼭 이루고 싶은 미래 사회의 가치는 무엇인가요? 해시태그(<code>#</code>) 형태로 <strong>단어 2가지 이상</strong>을 적어보세요! (예: <code>#생명존중 #생태계보존</code>)
+              </div>
+            </div>
+          </div>
+
+          <!-- [7단계] 영상 스타일 선택 (미래 사회, 로봇, 과학 기술 맞춤형 보기) -->
+          <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center">7</span>
+                <div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900">영상 스타일 선택</h3>
+                  <p class="text-xs text-slate-500">미래 사회, 로봇, 과학 기술의 매력이 가장 잘 드러나는 영상 스타일을 선택해 보세요.</p>
+                </div>
+              </div>
+              <span id="step7-status-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 whitespace-nowrap">선택 필요</span>
+            </div>
+
+            <!-- 미래 사회·로봇·과학 기술 어울림 스타일 선택 카드 그리드 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5" id="video-style-options-grid">
+              <button
+                type="button"
+                onclick="selectVideoStyleOption('고화질 3D 애니메이션 스타일 (밝고 입체적인 미래 도시와 정교한 로봇 연출)')"
+                data-style-val="고화질 3D 애니메이션 스타일 (밝고 입체적인 미래 도시와 정교한 로봇 연출)"
+                class="video-style-card text-left p-3.5 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-slate-50/70 transition flex flex-col justify-between gap-1"
+              >
+                <div class="text-xs font-extrabold text-slate-900 flex items-center justify-between">
+                  <span>✨ 고화질 3D 애니메이션 스타일</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-snug">밝고 희망찬 미래 배경과 입체적인 로봇의 움직임이 선명한 3D 애니메이션풍</p>
+              </button>
+
+              <button
+                type="button"
+                onclick="selectVideoStyleOption('시네마틱 SF 실사 영화 스타일 (초고화질 금속 질감과 미래형 네온 조명 연출)')"
+                data-style-val="시네마틱 SF 실사 영화 스타일 (초고화질 금속 질감과 미래형 네온 조명 연출)"
+                class="video-style-card text-left p-3.5 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-slate-50/70 transition flex flex-col justify-between gap-1"
+              >
+                <div class="text-xs font-extrabold text-slate-900 flex items-center justify-between">
+                  <span>🎬 시네마틱 SF 실사 영화 스타일</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-snug">실제 미래 SF 영화처럼 로봇의 금속 재질과 역동적 카메라 워킹이 돋보이는 실사풍</p>
+              </button>
+
+              <button
+                type="button"
+                onclick="selectVideoStyleOption('솔라펑크(Solarpunk) 친환경 미래 3D 스타일 (푸른 자연 생태계와 첨단 과학기술의 조화)')"
+                data-style-val="솔라펑크(Solarpunk) 친환경 미래 3D 스타일 (푸른 자연 생태계와 첨단 과학기술의 조화)"
+                class="video-style-card text-left p-3.5 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-slate-50/70 transition flex flex-col justify-between gap-1"
+              >
+                <div class="text-xs font-extrabold text-slate-900 flex items-center justify-between">
+                  <span>🌱 솔라펑크 친환경 미래 3D 스타일</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-snug">햇살 가득한 생태 도시와 친환경 첨단 로봇이 어우러진 따뜻한 지속가능 미래풍</p>
+              </button>
+
+              <button
+                type="button"
+                onclick="selectVideoStyleOption('하이테크 과학 다큐멘터리 & 홀로그램 HUD 스타일 (센서 스캔 파동과 데이터 시각화 강조)')"
+                data-style-val="하이테크 과학 다큐멘터리 & 홀로그램 HUD 스타일 (센서 스캔 파동과 데이터 시각화 강조)"
+                class="video-style-card text-left p-3.5 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-slate-50/70 transition flex flex-col justify-between gap-1"
+              >
+                <div class="text-xs font-extrabold text-slate-900 flex items-center justify-between">
+                  <span>🌐 하이테크 과학 다큐 &amp; 홀로그램 스타일</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-snug">레이더·센서 스캔 빛줄기와 AI 데이터 홀로그램이 선명하게 보이는 미래 과학 다큐풍</p>
+              </button>
+
+              <button
+                type="button"
+                onclick="selectVideoStyleOption('정밀 메카닉 공학 시뮬레이션 스타일 (로봇 관절 구조와 내부 기계 작동 클로즈업)')"
+                data-style-val="정밀 메카닉 공학 시뮬레이션 스타일 (로봇 관절 구조와 내부 기계 작동 클로즈업)"
+                class="video-style-card text-left p-3.5 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-slate-50/70 transition flex flex-col justify-between gap-1"
+              >
+                <div class="text-xs font-extrabold text-slate-900 flex items-center justify-between">
+                  <span>🔬 정밀 메카닉 공학 시뮬레이션 스타일</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-snug">다관절 부품, 필터, 센서 장치 등 기계적 작동 원리를 정교하게 클로즈업하는 스타일</p>
+              </button>
+
+              <button
+                type="button"
+                onclick="selectVideoStyleOption('미래 박람회 쇼케이스 디지털 컨셉 아트 스타일 (세련된 조명과 미래지향적 모션그래픽)')"
+                data-style-val="미래 박람회 쇼케이스 디지털 컨셉 아트 스타일 (세련된 조명과 미래지향적 모션그래픽)"
+                class="video-style-card text-left p-3.5 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-slate-50/70 transition flex flex-col justify-between gap-1"
+              >
+                <div class="text-xs font-extrabold text-slate-900 flex items-center justify-between">
+                  <span>🎨 미래 박람회 쇼케이스 컨셉 아트 스타일</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-snug">2050 세계 로봇 엑스포 홍보 영상처럼 세련되고 깔끔한 미래 디자인 스타일</p>
+              </button>
+            </div>
+
+            <div>
+              <label for="input-video-style" class="block text-xs font-bold text-slate-700 mb-1.5">
+                7. 선택된 영상 스타일 (위 보기를 클릭하거나 직접 수정할 수 있어요) <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="input-video-style"
+                type="text"
+                placeholder="위 보기에서 원하는 영상 스타일을 클릭해 선택하세요!"
+                oninput="handleStudioInputChange()"
+                onchange="handleStudioStepMove()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 outline-none text-sm font-semibold text-blue-700 transition"
+              />
+            </div>
+
+            <!-- 실시간 구체화 코칭 질문 (영상 스타일 미선택 시 주황색 박스) -->
+            <div id="coaching-step-7" class="coaching-box bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-3.5 text-orange-900 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+              <span class="text-base leading-none mt-0.5">💡</span>
+              <div>
+                <strong class="font-extrabold text-orange-800">[구체화 코칭 질문]</strong>
+                내가 기획한 로봇의 분위기와 과학 기술이 가장 잘 드러나도록 위 보기 중 마음에 드는 <strong>영상 스타일</strong>을 선택해 보세요!
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================
+             B. 2종 프롬프트 자동 변환 버튼 & 결과 카드
+             ============================================================== -->
+        <div class="pt-2">
+          <button
+            id="btn-generate-prompts"
+            type="button"
+            onclick="generatePrompts()"
+            class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 hover:from-indigo-700 hover:via-blue-700 hover:to-cyan-700 text-white font-extrabold text-base sm:text-lg shadow-xl shadow-blue-500/25 transition transform active:scale-[0.99] flex items-center justify-center gap-2.5"
+          >
+            <span class="text-xl">✨</span>
+            <span>프롬프트 자동 변환하기 (AI 영상 프롬프트 + 박람회 개조식 기획서 생성)</span>
+          </button>
+        </div>
+
+        <!-- 변환 결과 2종 카드 영역 -->
+        <div id="generated-results-section" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+
+          <!-- [결과 1] 🎬 AI 단일 영상 생성용 통합 프롬프트 -->
+          <div class="bg-white rounded-3xl shadow-lg border-2 border-indigo-100 overflow-hidden flex flex-col justify-between">
+            <div>
+              <div class="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">🎬</span>
+                  <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-200 block">RESULT 01 · AI VIDEO PROMPT</span>
+                    <h4 class="text-base font-extrabold">AI 영상 생성용 통합 프롬프트</h4>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-white/20 text-white">통합 영상 프롬프트</span>
+              </div>
+
+              <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500 leading-relaxed">
+                  영상 생성 AI 도구에 아래 프롬프트를 그대로 복사해 붙여넣으면, 로봇의 외형과 작동 모습이 한눈에 드러나는 로봇 소개 영상을 제작할 수 있어요!
+                </p>
+
+                <div class="bg-slate-900 text-slate-100 rounded-2xl p-5 font-medium text-sm sm:text-base leading-relaxed border border-slate-800 shadow-inner select-all" id="output-video-prompt">
+                  <!-- JS에서 조합 템플릿 렌더링 -->
+                </div>
+
+                <!-- 학생 직접 프롬프트 수정 입력창 (수정하기 버튼 클릭 시 표시) -->
+                <div id="video-prompt-editor-box" class="hidden space-y-2">
+                  <div class="flex items-center justify-between">
+                    <label for="input-custom-video-prompt" class="block text-xs font-extrabold text-indigo-700">
+                      ✏️ 영상 프롬프트 직접 수정하기 (수정한 내용이 그대로 복사·저장됩니다)
+                    </label>
+                    <button
+                      type="button"
+                      onclick="resetCustomVideoPromptToDefault()"
+                      class="text-[11px] font-bold text-slate-500 hover:text-indigo-600 underline"
+                    >
+                      기본 변환 프롬프트로 되돌리기
+                    </button>
+                  </div>
+                  <textarea
+                    id="input-custom-video-prompt"
+                    rows="5"
+                    oninput="handleCustomVideoPromptInput()"
+                    class="w-full p-4 rounded-2xl border-2 border-indigo-400 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/15 outline-none text-sm sm:text-base font-medium text-slate-900 bg-indigo-50/40 leading-relaxed resize-y"
+                    placeholder="AI 영상 프롬프트에서 수정하고 싶은 부분을 자유롭게 고쳐보세요..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-6 pb-6 pt-2 space-y-2.5">
+              <button
+                type="button"
+                id="btn-edit-video-prompt"
+                onclick="toggleEditVideoPrompt()"
+                class="w-full py-3 px-4 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-300 font-extrabold text-sm transition flex items-center justify-center gap-2"
+              >
+                <span>✏️</span>
+                <span id="btn-edit-video-prompt-label">영상 프롬프트 수정하기</span>
+              </button>
+
+              <button
+                type="button"
+                id="btn-copy-video-prompt"
+                onclick="copyVideoPrompt()"
+                class="w-full py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm shadow-md shadow-indigo-500/20 transition flex items-center justify-center gap-2"
+              >
+                <span>📋</span>
+                <span>영상 프롬프트 복사하기</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- [결과 2] 📋 로봇 박람회 전시용 개조식 기획서 -->
+          <div class="bg-white rounded-3xl shadow-lg border-2 border-blue-100 overflow-hidden flex flex-col justify-between">
+            <div>
+              <div class="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">📋</span>
+                  <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-100 block">RESULT 02 · EXPO BOOTH SPEC SHEET</span>
+                    <h4 class="text-base font-extrabold">로봇 박람회 전시용 개조식 기획서</h4>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-white/20 text-white">부스 안내판 규격</span>
+              </div>
+
+              <div id="output-spec-sheet-container" class="p-6 space-y-3">
+                <!-- JS에서 개조식 스펙 시트 렌더링 -->
+              </div>
+            </div>
+
+            <div class="px-6 pb-6 pt-2 space-y-2.5">
+              <!-- AI에게 피드백 받기 버튼 (선생님께 제출 버튼 바로 위, 하루 최대 3회 제한) -->
+              <button
+                type="button"
+                id="btn-student-ai-feedback"
+                onclick="requestStudentAiFeedback()"
+                class="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-violet-500/25 transition flex items-center justify-center gap-2"
+              >
+                <span>🤖</span>
+                <span id="btn-student-ai-feedback-label">AI에게 피드백 받기</span>
+                <span id="student-ai-feedback-count-badge" class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-white/20 text-white">(오늘 0/3회)</span>
+              </button>
+              <p id="student-ai-feedback-helper" class="text-[11px] text-center text-violet-700 font-semibold">
+                버튼을 누르면 내가 작성한 1~5번 입력칸 바로 아래에 AI의 피드백이 나타납니다(하루 최대 3번)
+              </p>
+
+              <!-- 선생님께 제출 버튼 -->
+              <button
+                type="button"
+                id="btn-submit-to-expo"
+                onclick="submitToExpoAndTeacher()"
+                class="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2"
+              >
+                <span>📩</span>
+                <span>선생님께 제출</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         [탭 2] 🏛️ 미래 로봇 박람회 전시관 (전체 공유 공간)
+         ================================================================== -->
+    <section id="view-expo" class="hidden space-y-6">
+
+      <!-- 전시관 상단 히어로 배너 -->
+      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold">
+              <span>🌐 WORLD ROBOT EXPO 2050 PAVILION</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              🏛️ 2050 미래 로봇 박람회 온라인 전시관
+            </h2>
+            <p class="text-slate-300 text-sm max-w-2xl leading-relaxed">
+              친구들이 기획한 미래 사회 문제 해결 로봇 부스를 관람해 보세요!
+            </p>
+          </div>
+
+          <!-- 전시관 통계 요약 -->
+          <div class="grid grid-cols-2 gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 shrink-0">
+            <div class="text-center px-3">
+              <div id="expo-stat-total" class="text-2xl font-extrabold text-emerald-300">0</div>
+              <div class="text-[11px] text-blue-200 font-medium">전시 승인 부스</div>
+            </div>
+            <div class="text-center px-3 border-l border-white/15">
+              <div id="expo-stat-video" class="text-2xl font-extrabold text-cyan-300">0</div>
+              <div class="text-[11px] text-blue-200 font-medium">영상 상영중</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 전시관 검색 바 -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white">
+            전체 전시 승인 부스
+          </span>
+        </div>
+
+        <div class="relative w-full sm:w-72">
+          <input
+            id="expo-search-input"
+            type="text"
+            placeholder="로봇 이름, 학생 이름 검색..."
+            oninput="renderExpoBooths()"
+            class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none text-xs sm:text-sm"
+          />
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+        </div>
+      </div>
+
+      <!-- 전시관 부스 카드 그리드 -->
+      <div id="expo-booth-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- JS에서 부스 카드 렌더링 -->
+      </div>
+
+    </section>
+
+    <!-- ==================================================================
+         [탭 3] 🔒 교사 관리자 화면
+         ================================================================== -->
+    <section id="view-teacher" class="hidden space-y-6">
+
+      <!-- 3-A. 교사 비밀번호 인증 화면 (힌트 전부 삭제됨) -->
+      <div id="teacher-auth-panel" class="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mt-8">
+        <div class="bg-slate-900 px-6 py-7 text-white text-center">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl mx-auto mb-3">
+            🔒
+          </div>
+          <h2 class="text-xl font-extrabold">교사 관리자 화면 잠금 해제</h2>
+        </div>
+
+        <form id="teacher-auth-form" class="p-6 space-y-4">
+          <div>
+            <label for="teacher-password-input" class="block text-xs font-bold text-slate-700 mb-1.5">
+              관리자 비밀번호
+            </label>
+            <input
+              id="teacher-password-input"
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              required
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 outline-none text-center text-lg font-extrabold tracking-widest"
+            />
+            <p id="teacher-auth-error" class="hidden text-xs font-bold text-rose-600 mt-1.5 text-center">
+              비밀번호가 일치하지 않습니다.
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow-lg transition"
+          >
+            🔓 교사 관리자 접속하기
+          </button>
+        </form>
+      </div>
+
+      <!-- 3-B. 교사 관리자 대시보드 (인증 후 표시) -->
+      <div id="teacher-dashboard-panel" class="hidden space-y-5">
+
+        <!-- 상단 관리자 툴바 -->
+        <div class="bg-slate-900 text-white rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-lg">
+              👨‍🏫
+            </div>
+            <div>
+              <h2 class="text-base sm:text-lg font-extrabold tracking-tight">교사 실시간 수업 관리 &amp; 피드백 센터</h2>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onclick="openGasConfigModal()"
+              class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-sm"
+            >
+              <span>⚡</span>
+              <span>저장소 설정</span>
+            </button>
+            <button
+              type="button"
+              onclick="manualSyncNow()"
+              class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition flex items-center gap-1.5"
+            >
+              <span>🔄</span>
+              <span>지금 동기화</span>
+            </button>
+            <button
+              type="button"
+              onclick="lockTeacherDashboard()"
+              class="px-3 py-2 rounded-xl text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/30 transition"
+            >
+              🔒 잠금
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. 실시간 제출 현황 요약 카드 (클릭 시 필터링) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <button
+            type="button"
+            onclick="setTeacherFilter('all')"
+            data-teacher-filter="all"
+            class="teacher-stat-card text-left bg-white px-4 py-3.5 rounded-2xl border-2 border-blue-600 shadow-sm transition hover:shadow-md"
+          >
+            <div class="flex items-center justify-between text-xs font-bold text-slate-500">
+              <span>전체 학생</span>
+              <span class="text-sm">👥</span>
+            </div>
+            <div id="t-stat-all" class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">0명</div>
+          </button>
+
+          <button
+            type="button"
+            onclick="setTeacherFilter('drafting')"
+            data-teacher-filter="drafting"
+            class="teacher-stat-card text-left bg-white px-4 py-3.5 rounded-2xl border-2 border-slate-200 shadow-sm transition hover:shadow-md"
+          >
+            <div class="flex items-center justify-between text-xs font-bold text-slate-500">
+              <span>작성중</span>
+              <span class="text-sm">✍️</span>
+            </div>
+            <div id="t-stat-drafting" class="text-xl sm:text-2xl font-extrabold text-slate-700 mt-1">0명</div>
+          </button>
+
+          <button
+            type="button"
+            onclick="setTeacherFilter('submitted')"
+            data-teacher-filter="submitted"
+            class="teacher-stat-card text-left bg-white px-4 py-3.5 rounded-2xl border-2 border-slate-200 shadow-sm transition hover:shadow-md"
+          >
+            <div class="flex items-center justify-between text-xs font-bold text-blue-600">
+              <span>제출완료</span>
+              <span class="text-sm">📩</span>
+            </div>
+            <div id="t-stat-submitted" class="text-xl sm:text-2xl font-extrabold text-blue-600 mt-1">0명</div>
+          </button>
+
+          <button
+            type="button"
+            onclick="setTeacherFilter('revision')"
+            data-teacher-filter="revision"
+            class="teacher-stat-card text-left bg-white px-4 py-3.5 rounded-2xl border-2 border-slate-200 shadow-sm transition hover:shadow-md"
+          >
+            <div class="flex items-center justify-between text-xs font-bold text-orange-600">
+              <span>수정요청</span>
+              <span class="text-sm">🔄</span>
+            </div>
+            <div id="t-stat-revision" class="text-xl sm:text-2xl font-extrabold text-orange-600 mt-1">0명</div>
+          </button>
+
+          <button
+            type="button"
+            onclick="setTeacherFilter('approved')"
+            data-teacher-filter="approved"
+            class="teacher-stat-card text-left bg-white px-4 py-3.5 rounded-2xl border-2 border-slate-200 shadow-sm transition hover:shadow-md col-span-2 sm:col-span-1"
+          >
+            <div class="flex items-center justify-between text-xs font-bold text-emerald-600">
+              <span>전시승인</span>
+              <span class="text-sm">✅</span>
+            </div>
+            <div id="t-stat-approved" class="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1">0명</div>
+          </button>
+        </div>
+
+        <!-- 2. 학생 목록 테이블 & 상세 열람/피드백 워크스테이션 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+          <!-- 좌측 (7칸): 학생 제출 현황 테이블 -->
+          <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-4 py-3.5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900">📋 학생 제출 현황 목록</h3>
+                <span id="teacher-table-count" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-200">0명</span>
+              </div>
+
+              <div class="relative w-full sm:w-56">
+                <input
+                  id="teacher-search-input"
+                  type="text"
+                  placeholder="이름, 로봇명 검색..."
+                  oninput="renderTeacherDashboard()"
+                  class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 focus:border-blue-500 bg-white outline-none text-xs"
+                />
+                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold text-slate-500 whitespace-nowrap">
+                    <th class="py-3 px-4">학생 이름</th>
+                    <th class="py-3 px-3">출품 로봇명</th>
+                    <th class="py-3 px-2.5 text-center">상태</th>
+                    <th class="py-3 px-2.5 text-center">버전/이력</th>
+                    <th class="py-3 px-2.5 text-center">영상</th>
+                    <th class="py-3 px-4 text-right">관리</th>
+                  </tr>
+                </thead>
+                <tbody id="teacher-student-tbody" class="divide-y divide-slate-100 text-xs sm:text-sm">
+                  <!-- JS에서 동적 렌더링 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 우측 (5칸): 선택 학생 상세 프롬프트 열람 & 피드백 발송 패널 -->
+          <div id="teacher-detail-panel" class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden sticky top-20">
+            <!-- JS에서 선택된 학생 상세 정보 및 피드백 폼 렌더링 -->
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       모달 1: 박람회 부스 상세 모달 (좌측: 소개 영상 플레이어 / 우측: 개조식 기획서)
+       ==================================================================== -->
+  <div id="booth-detail-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 modal-backdrop flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-white w-full max-w-6xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden modal-content-anim my-auto max-h-[92vh] flex flex-col">
+      
+      <!-- 모달 헤더 -->
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <span id="modal-booth-number" class="px-3 py-1 rounded-xl bg-blue-600 text-white font-extrabold text-xs">BOOTH #01</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 id="modal-booth-title" class="text-lg sm:text-xl font-extrabold">로봇 이름</h3>
+              <span id="modal-booth-status" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">전시승인</span>
+            </div>
+            <p id="modal-booth-creator" class="text-xs text-slate-300 mt-0.5">기획 연구원: 김미래</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onclick="closeBoothDetailModal()"
+          class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-lg font-bold transition"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- 모달 본문 (스마트폰: 1.소개 영상 -> 2.기획서 -> 3.프롬프트 -> 4.댓글 달기 / 데스크톱: 좌측 영상·프롬프트·댓글 & 우측 기획서) -->
+      <div class="p-5 sm:p-6 overflow-y-auto flex flex-col lg:grid lg:grid-cols-12 gap-5 lg:gap-6 items-stretch lg:items-start flex-1">
+        
+        <!-- 좌측 그룹 (데스크톱 6칸 / 모바일에서는 contents로 풀어 order-1, order-3, order-4 순서 배치) -->
+        <div class="contents lg:block lg:col-span-6 lg:space-y-4">
+          <!-- [모바일 순서 1] 로봇 소개 영상 플레이어 -->
+          <div class="order-1 space-y-4">
+            <div class="flex items-center justify-between">
+              <h4 class="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                <span>🎥</span>
+                <span>AI 로봇 소개 영상</span>
+              </h4>
+              <button
+                type="button"
+                id="modal-btn-attach-video"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition flex items-center gap-1"
+              >
+                <span>📎</span>
+                <span>영상 첨부 / 변경하기</span>
+              </button>
+            </div>
+
+            <div id="modal-video-player-box" class="rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 aspect-video relative flex items-center justify-center shadow-lg">
+              <!-- JS에서 비디오 태그 / 영상 임베드 렌더링 -->
+            </div>
+          </div>
+
+          <!-- [모바일 순서 3] 영상 프롬프트 확인 -->
+          <div class="order-3 bg-slate-50 rounded-2xl p-4 border border-slate-200">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-extrabold text-slate-700">🎬 이 영상을 만든 AI 프롬프트</span>
+            </div>
+            <p id="modal-booth-video-prompt" class="text-xs text-slate-600 leading-relaxed"></p>
+          </div>
+
+          <!-- [모바일 순서 4] 작품 응원 & 댓글 달기 -->
+          <div class="order-4 bg-rose-50/60 rounded-2xl p-4 border border-rose-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-rose-900 flex items-center gap-1.5">
+                <span>❤️</span>
+                <span>작품 응원 &amp; 어떤 점이 좋았는지 남기기</span>
+              </span>
+              <span id="modal-booth-like-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-100 text-rose-700 border border-rose-200">
+                ❤️ 0
+              </span>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input
+                  id="modal-booth-like-comment-input"
+                  type="text"
+                  maxlength="200"
+                  placeholder="어떤 점이 좋았는지 최소 20자 이상 작성해야 하트를 누를 수 있어요!"
+                  oninput="updateBoothCommentCharCount()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();submitBoothLikeWithComment();}"
+                  class="flex-1 px-3.5 py-2.5 rounded-xl border border-rose-200 focus:border-rose-500 outline-none text-xs sm:text-sm bg-white"
+                />
+                <button
+                  type="button"
+                  id="modal-btn-like-booth"
+                  onclick="submitBoothLikeWithComment()"
+                  class="px-4 py-2.5 rounded-xl text-xs font-extrabold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition flex items-center justify-center gap-1.5 shrink-0"
+                >
+                  <span>❤️</span>
+                  <span id="modal-btn-like-booth-label">하트 누르기</span>
+                </button>
+              </div>
+              <div class="flex items-center justify-between text-[11px] px-1">
+                <span id="modal-booth-comment-char-count" class="font-bold text-rose-600">0자 / 최소 20자 이상 작성해 주세요</span>
+              </div>
+            </div>
+
+            <!-- 응원 댓글 목록 -->
+            <div id="modal-booth-comments-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+              <!-- JS에서 댓글 렌더링 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 우측 그룹 (데스크톱 6칸 / 모바일에서는 order-2로 소개 영상 바로 다음에 기획서 표시) -->
+        <div class="order-2 lg:order-none lg:col-span-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span>📋</span>
+              <span>박람회 부스 공식 개조식 로봇 기획서</span>
+            </h4>
+            <span id="modal-booth-version" class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Version 1
+            </span>
+          </div>
+
+          <div id="modal-booth-spec-sheet" class="space-y-3">
+            <!-- JS에서 개조식 기획서 렌더링 -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       모달 2: 로봇 소개 영상 첨부하기 모달 (MP4 파일 업로드 / 영상 공유 링크)
+       ==================================================================== -->
+  <div id="video-attach-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 modal-backdrop flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden modal-content-anim my-auto">
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🎥</span>
+          <div>
+            <h3 class="text-base font-extrabold">로봇 소개 영상 첨부하기</h3>
+            <p id="video-modal-student-label" class="text-xs text-blue-100">로봇 부스</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeVideoAttachModal()" class="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 text-white font-bold">✕</button>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <!-- 방식 선택 탭 (2종: MP4 파일 업로드 / 영상 공유 링크) -->
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-xl">
+          <button
+            type="button"
+            onclick="switchVideoModalTab('file')"
+            id="vtab-btn-file"
+            class="py-2.5 px-3 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-sm transition"
+          >
+            📁 MP4 파일 업로드
+          </button>
+          <button
+            type="button"
+            onclick="switchVideoModalTab('url')"
+            id="vtab-btn-url"
+            class="py-2.5 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition"
+          >
+            🔗 영상 공유 링크
+          </button>
+        </div>
+
+        <!-- 1. MP4 파일 업로드 (Supabase Storage 자동 업로드 + 로컬 백업) -->
+        <div id="vtab-panel-file" class="space-y-3">
+          <label
+            for="video-file-input"
+            class="block border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 rounded-2xl p-6 text-center cursor-pointer transition"
+          >
+            <div class="text-3xl mb-2">📥</div>
+            <div class="text-sm font-extrabold text-slate-800">제작한 MP4 로봇 소개 영상 파일을 선택하세요</div>
+            <div class="text-xs text-slate-500 mt-1">MP4, WebM, MOV 지원 (최대 50MB · Supabase 연동 시 모든 기기에서 즉시 재생)</div>
+            <input id="video-file-input" type="file" accept="video/*" class="hidden" onchange="handleVideoFileSelected(event)" />
+          </label>
+          <div id="selected-video-file-info" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs font-bold text-emerald-800 flex items-center justify-between">
+            <span id="selected-video-filename">파일명.mp4</span>
+            <span>✅ 준비 완료</span>
+          </div>
+        </div>
+
+        <!-- 2. 영상 공유 링크 또는 동영상 URL -->
+        <div id="vtab-panel-url" class="hidden space-y-3">
+          <div>
+            <label for="video-url-input" class="block text-xs font-bold text-slate-700 mb-1.5">
+              영상 공유 링크, 임베드 코드, 또는 동영상 URL (.mp4 / YouTube)
+            </label>
+            <input
+              id="video-url-input"
+              type="text"
+              placeholder="예: https://www.youtube.com/watch?v=... 또는 https://.../video.mp4"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-sm"
+            />
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-xs text-slate-600 space-y-1">
+            <div class="font-bold text-slate-800">💡 영상 링크 등록 안내:</div>
+            <p>• YouTube 영상 링크, 클라우드 동영상 직접 링크(.mp4), 또는 웹 영상 공유 주소를 붙여넣으면 박람회 부스에서 바로 재생됩니다.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <button
+            type="button"
+            onclick="closeVideoAttachModal()"
+            class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            id="btn-save-attached-video"
+            onclick="saveAttachedVideo()"
+            class="px-5 py-2.5 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition"
+          >
+            ✅ 부스에 영상 등록하기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       모달 3: 학생별 수정 이력 보기 (버전 1, 버전 2, 버전 3... 비교 모달)
+       ==================================================================== -->
+  <div id="history-compare-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 modal-backdrop flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-white w-full max-w-6xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden modal-content-anim my-auto max-h-[92vh] flex flex-col">
+      
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🕒</span>
+          <div>
+            <h3 id="history-modal-title" class="text-base sm:text-lg font-extrabold">학생 작성 내용 수정 이력 (History 비교)</h3>
+            <p id="history-modal-subtitle" class="text-xs text-slate-300">버전별 제출 시간과 작성 내용의 구체화 변화 과정을 한눈에 비교합니다.</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="closeHistoryCompareModal()"
+          class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-lg font-bold"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div id="history-modal-body" class="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
+        <!-- JS에서 버전 비교 컨트롤 및 타임라인/비교표 렌더링 -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       모달 4: Supabase 실시간 DB & 영상 저장소 연동 설정 모달 (교사 화면 전용)
+       ==================================================================== -->
+  <div id="gas-config-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 modal-backdrop flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden modal-content-anim my-auto max-h-[92vh] flex flex-col">
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">⚡</span>
+          <div>
+            <h3 class="text-base font-extrabold">Supabase 실시간 DB &amp; MP4 영상 저장소 연동 설정</h3>
+          </div>
+        </div>
+        <button type="button" onclick="closeGasConfigModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 flex-1">
+        <!-- 1. Supabase 설정 영역 -->
+        <div class="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 space-y-3.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
+              <span>⚡</span>
+              <span>Supabase 프로젝트 연결 정보 (메인 데이터베이스 &amp; 영상 Storage)</span>
+            </span>
+            <span id="supabase-badge-status" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700">미설정</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <div>
+              <label for="supabase-url-input" class="block text-xs font-extrabold text-slate-700 mb-1">
+                1) Supabase Project URL (입력 시에만 표시 · 자동 마스킹 및 복사 불가)
+              </label>
+              <input
+                id="supabase-url-input"
+                type="password"
+                value="••••••••••••••••••••••••••••••••"
+                data-masked="true"
+                autocomplete="new-password"
+                spellcheck="false"
+                onfocus="handleSecretInputFocus(this)"
+                onblur="handleSecretInputBlur(this)"
+                oncopy="return false"
+                oncut="return false"
+                ondragstart="return false"
+                onselectstart="return false"
+                oncontextmenu="return false"
+                style="user-select: none; -webkit-user-select: none;"
+                placeholder="새 Project URL 입력 시에만 타이핑하세요"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-emerald-600 outline-none text-xs sm:text-sm font-mono bg-white select-none"
+              />
+            </div>
+
+            <div>
+              <label for="supabase-key-input" class="block text-xs font-extrabold text-slate-700 mb-1">
+                2) Supabase API Key (입력 시에만 표시 · 자동 마스킹 및 복사 불가)
+              </label>
+              <input
+                id="supabase-key-input"
+                type="password"
+                value="••••••••••••••••••••••••••••••••"
+                data-masked="true"
+                autocomplete="new-password"
+                spellcheck="false"
+                onfocus="handleSecretInputFocus(this)"
+                onblur="handleSecretInputBlur(this)"
+                oncopy="return false"
+                oncut="return false"
+                ondragstart="return false"
+                onselectstart="return false"
+                oncontextmenu="return false"
+                style="user-select: none; -webkit-user-select: none;"
+                placeholder="새 API Key 입력 시에만 타이핑하세요"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-emerald-600 outline-none text-xs sm:text-sm font-mono bg-white select-none"
+              />
+            </div>
+
+            <div class="flex flex-wrap gap-2 pt-1">
+              <button
+                type="button"
+                onclick="saveCloudConfig()"
+                class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm transition flex items-center justify-center gap-1.5"
+              >
+                <span>💾</span>
+                <span>Supabase 설정 저장 및 즉시 연결</span>
+              </button>
+              <button
+                type="button"
+                onclick="testCloudConnection()"
+                class="py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
+              >
+                <span>📡</span>
+                <span>연결 테스트</span>
+              </button>
+            </div>
+          </div>
+
+          <p id="gas-config-status-msg" class="text-xs font-semibold text-slate-600"></p>
+        </div>
+
+        <!-- Supabase 1분 초기 세팅 가이드 & SQL 복사 -->
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+          <div class="flex items-center justify-between gap-2">
+            <h4 class="text-xs font-extrabold text-slate-800">🚀 1분 완성! Supabase 테이블 &amp; MP4 영상 저장소 자동 생성 방법</h4>
+            <button
+              type="button"
+              id="btn-toggle-supabase-guide"
+              onclick="toggleSupabaseSetupGuide()"
+              class="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-extrabold transition shrink-0"
+            >
+              내용 확인
+            </button>
+          </div>
+          <div id="supabase-setup-guide-body" class="hidden mt-3 pt-3 border-t border-slate-200/80 space-y-3">
+            <ol class="text-xs text-slate-600 space-y-1.5 list-decimal list-inside leading-relaxed">
+              <li><strong>Supabase(supabase.com)</strong>에서 무료 프로젝트를 생성합니다.</li>
+              <li>좌측 메뉴 <strong>[SQL Editor] ➔ [+ New query]</strong>를 클릭한 뒤, 아래의 <strong>[📋 Supabase 초기 설정 SQL 복사하기]</strong> 버튼을 눌러 복사한 SQL을 붙여넣고 <strong>[Run]</strong>을 누릅니다. (학생 DB 테이블 + 실시간 감지 + <code>robot-videos</code> 영상 저장소가 한 번에 생성됩니다!)</li>
+              <li>좌측 메뉴 <strong>[Project Settings (톱니바퀴)] ➔ [API]</strong>(또는 Data API)에서 <strong>Project URL</strong>과 <strong>anon public key</strong>를 복사해 위 입력칸에 붙여넣고 저장하면 끝납니다!</li>
+            </ol>
+            <button
+              type="button"
+              onclick="copySupabaseSetupSql()"
+              class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold transition inline-flex items-center gap-1"
+            >
+              <span>📋</span>
+              <span>Supabase 초기 설정 SQL 복사하기</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       모달 5: 교사 관리자용 학생 로봇 기획서 수정 모달
+       ==================================================================== -->
+  <div id="admin-edit-student-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 modal-backdrop flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden modal-content-anim my-auto max-h-[92vh] flex flex-col">
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">✏️</span>
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold">학생 로봇 기획서 수정 (관리자 권한)</h3>
+            <p class="text-xs text-slate-300">수정 저장 시 변환 프롬프트와 박람회 전시관 개조식 기획서가 즉시 함께 업데이트됩니다.</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAdminEditStudentModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold">✕</button>
+      </div>
+
+      <form id="admin-edit-student-form" onsubmit="saveAdminEditedStudent(event)" class="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <input type="hidden" id="admin-edit-target-id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          <div>
+            <label for="admin-edit-student-name" class="block text-xs font-extrabold text-slate-700 mb-1">학생 이름 <span class="text-rose-500">*</span></label>
+            <input id="admin-edit-student-name" type="text" required class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-sm font-bold bg-white" />
+          </div>
+          <div>
+            <label for="admin-edit-robot-name" class="block text-xs font-extrabold text-slate-700 mb-1">1-1. 로봇 이름 <span class="text-rose-500">*</span></label>
+            <input id="admin-edit-robot-name" type="text" required class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-sm font-bold bg-white" />
+          </div>
+          <div>
+            <label for="admin-edit-status" class="block text-xs font-extrabold text-slate-700 mb-1">진행 상태</label>
+            <select id="admin-edit-status" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-sm font-bold bg-white">
+              <option value="drafting">✍️ 작성중</option>
+              <option value="submitted">📩 제출완료</option>
+              <option value="revision">🔄 수정요청</option>
+              <option value="approved">✅ 전시승인</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="admin-edit-appearance" class="block text-xs font-extrabold text-slate-700 mb-1">1-2. 로봇 외형 특징</label>
+          <textarea id="admin-edit-appearance" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm"></textarea>
+        </div>
+
+        <div>
+          <label for="admin-edit-purpose" class="block text-xs font-extrabold text-slate-700 mb-1">2. 제작 목적 (해결할 미래 사회 문제)</label>
+          <textarea id="admin-edit-purpose" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm"></textarea>
+        </div>
+
+        <div>
+          <label for="admin-edit-main-function" class="block text-xs font-extrabold text-slate-700 mb-1">3. 주요 기능 (작동 모습과 기계적 구조)</label>
+          <textarea id="admin-edit-main-function" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-200">
+          <div>
+            <label for="admin-edit-sensor-name" class="block text-xs font-extrabold text-indigo-950 mb-1">4-1. 탑재 센서 이름</label>
+            <input id="admin-edit-sensor-name" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm bg-white" />
+          </div>
+          <div>
+            <label for="admin-edit-sensor-target" class="block text-xs font-extrabold text-indigo-950 mb-1">4-2. 세부 감지 대상</label>
+            <input id="admin-edit-sensor-target" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm bg-white" />
+          </div>
+          <div>
+            <label for="admin-edit-sensor-action" class="block text-xs font-extrabold text-indigo-950 mb-1">4-3. 감지 정보 활용 행동</label>
+            <input id="admin-edit-sensor-action" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm bg-white" />
+          </div>
+        </div>
+
+        <div>
+          <label for="admin-edit-science-tech" class="block text-xs font-extrabold text-slate-700 mb-1">5. 적용된 과학 기술 (융합 기술)</label>
+          <textarea id="admin-edit-science-tech" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="admin-edit-core-values" class="block text-xs font-extrabold text-slate-700 mb-1">6. 추구하는 가치 (해시태그)</label>
+            <input id="admin-edit-core-values" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm font-semibold text-indigo-700" />
+          </div>
+          <div>
+            <label for="admin-edit-video-style" class="block text-xs font-extrabold text-slate-700 mb-1">7. 영상 스타일</label>
+            <input id="admin-edit-video-style" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-xs sm:text-sm font-semibold text-blue-700" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-slate-200">
+          <button
+            type="button"
+            onclick="deleteStudentFromEditModal()"
+            class="px-4 py-2.5 rounded-xl text-xs font-extrabold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center gap-1"
+          >
+            <span>🗑️</span>
+            <span>이 로봇/학생 삭제하기</span>
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              onclick="closeAdminEditStudentModal()"
+              class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              class="px-5 py-2.5 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition flex items-center gap-1.5"
+            >
+              <span>💾</span>
+              <span>수정 내용 저장하기</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 컨테이너 (하단 배지에 가려지지 않도록 위쪽 여백 확보) -->
+  <div id="toast-container" class="fixed bottom-24 sm:bottom-28 right-5 z-[9999] flex flex-col gap-2 pointer-events-none max-w-md"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
